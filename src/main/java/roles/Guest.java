@@ -47,21 +47,6 @@ public class Guest {
         }
     }
 
-//    private void addBooking() {
-//        System.out.print("Enter Room Number to Book: ");
-//        int roomNumber = scanner.nextInt();
-//        System.out.print("Enter Guest Name: ");
-//        String guestName = scanner.next();
-//
-//        String query = "INSERT INTO Booking (RoomNumber, GuestName) VALUES (?, ?)";
-//        try (Connection conn = getConnection()) {
-//            int rows = executeUpdate(conn, query, roomNumber, guestName);
-//            if (rows > 0) System.out.println("Booking added successfully!");
-//        } catch (SQLException e) {
-//            System.err.println("Error adding booking: " + e.getMessage());
-//        }
-//    }
-
     private void addBooking() {
         System.out.print("Enter Room Number to Book: ");
         String roomNumber = scanner.next();
