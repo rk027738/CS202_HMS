@@ -1,9 +1,11 @@
+package utils;
+
 import java.sql.*;
 
 public class DatabaseUtils {
-    private static final String URL = "jdbc:mysql://localhost:3306/hotel_db";
-    private static final String USER = "root";
-    private static final String PASSWORD = "yourpassword";
+    private static final String URL = "jdbc:mysql://sql7.freesqldatabase.com:3306/sql7752655";
+    private static final String USER = "sql7752655";
+    private static final String PASSWORD = "3zFkUu13Sp";
 
     // Establish database connection
     public static Connection getConnection() throws SQLException {

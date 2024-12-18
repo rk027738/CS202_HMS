@@ -4,7 +4,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
-import static DatabaseUtils.*;
+
+import utils.DatabaseUtils;
+import utils.DatabaseUtils.*;
+
+import static utils.DatabaseUtils.*;
 
 public class Administrator {
     private Scanner scanner = new Scanner(System.in);
@@ -16,7 +20,7 @@ public class Administrator {
             System.out.println("2. Modify Room Details");
             System.out.println("3. Delete Room");
             System.out.println("4. Generate Revenue Report");
-            System.out.println("5. Return to Main Menu");
+            System.out.println("5. Logout");
             int choice = scanner.nextInt();
 
             switch (choice) {
@@ -39,13 +43,14 @@ public class Administrator {
         double price = scanner.nextDouble();
 
         String query = "INSERT INTO Room (RoomNumber, RoomType, Price, RoomStatus) VALUES (?, ?, ?, 'Available')";
-        try (Connection conn = getConnection()) {
-            int rows = executeUpdate(conn, query, roomNumber, roomType, price);
+        try (Connection conn = DatabaseUtils.getConnection()) {
+            int rows = DatabaseUtils.executeUpdate(conn, query, roomNumber, roomType, price);
             if (rows > 0) System.out.println("Room added successfully.");
         } catch (SQLException e) {
             System.err.println("Error adding room: " + e.getMessage());
         }
     }
+
 
     private void modifyRoomDetails() {
         System.out.print("Enter Room Number to Modify: ");

@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
-import static DatabaseUtils.*;
+import utils.DatabaseUtils.*;
+
+import static utils.DatabaseUtils.*;
+
 
 public class Guest {
     private Scanner scanner = new Scanner(System.in);
@@ -16,7 +19,7 @@ public class Guest {
             System.out.println("2. Add New Booking");
             System.out.println("3. View My Bookings");
             System.out.println("4. Cancel Booking");
-            System.out.println("5. Return to Main Menu");
+            System.out.println("5. Logout");
             int choice = scanner.nextInt();
 
             switch (choice) {
@@ -44,20 +47,66 @@ public class Guest {
         }
     }
 
+//    private void addBooking() {
+//        System.out.print("Enter Room Number to Book: ");
+//        int roomNumber = scanner.nextInt();
+//        System.out.print("Enter Guest Name: ");
+//        String guestName = scanner.next();
+//
+//        String query = "INSERT INTO Booking (RoomNumber, GuestName) VALUES (?, ?)";
+//        try (Connection conn = getConnection()) {
+//            int rows = executeUpdate(conn, query, roomNumber, guestName);
+//            if (rows > 0) System.out.println("Booking added successfully!");
+//        } catch (SQLException e) {
+//            System.err.println("Error adding booking: " + e.getMessage());
+//        }
+//    }
+
     private void addBooking() {
         System.out.print("Enter Room Number to Book: ");
         String roomNumber = scanner.next();
-        System.out.print("Enter Guest Name: ");
-        String guestName = scanner.next();
+        System.out.print("Enter Guest/User ID: ");
+        int userId = scanner.nextInt();
+        scanner.nextLine();
+        System.out.print("Enter Check-in Date (YYYY-MM-DD): ");
+        String checkInDate = scanner.nextLine();
+        System.out.print("Enter Check-out Date (YYYY-MM-DD): ");
+        String checkOutDate = scanner.nextLine();
+        System.out.print("Enter Number of Guests: ");
+        int numberOfGuests = scanner.nextInt();
 
-        String query = "INSERT INTO Booking (RoomNumber, GuestName) VALUES (?, ?)";
+        String overlapQuery = "SELECT COUNT(*) AS OverlapCount " +
+                "FROM Booking b " +
+                "JOIN Room r ON b.RoomId = r.RoomId " +
+                "WHERE r.RoomNumber = ? " +
+                "  AND b.BookingStatus = 'Confirmed' " +
+                "  AND (b.CheckInDate < ? AND b.CheckOutDate > ?)";
+
+        String insertQuery = "INSERT INTO Booking (RoomId, UserId, CheckInDate, CheckOutDate, NumberOfGuests, BookingStatus) " +
+                "SELECT RoomId, ?, ?, ?, ?, 'Pending' FROM Room WHERE RoomNumber = ?";
+
         try (Connection conn = getConnection()) {
-            int rows = executeUpdate(conn, query, roomNumber, guestName);
-            if (rows > 0) System.out.println("Booking added successfully!");
+            // Check for overlapping bookings
+            ResultSet rs = executeQuery(conn, overlapQuery, roomNumber, checkOutDate, checkInDate);
+            if (rs.next() && rs.getInt("OverlapCount") > 0) {
+                System.out.println("Room is already booked for the requested date range.");
+                return;
+            }
+
+            // Proceed with booking if no overlaps
+            int rows = executeUpdate(conn, insertQuery, userId, checkInDate, checkOutDate, numberOfGuests, roomNumber);
+            if (rows > 0) {
+                System.out.println("Booking added successfully!");
+            } else {
+                System.out.println("No matching room found.");
+            }
         } catch (SQLException e) {
             System.err.println("Error adding booking: " + e.getMessage());
         }
     }
+
+
+
 
     private void viewMyBookings() {
         System.out.print("Enter your name: ");

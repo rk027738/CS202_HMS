@@ -1,10 +1,12 @@
 package roles;
 
+import utils.DatabaseUtils;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
-import static DatabaseUtils.*;
+import static utils.DatabaseUtils.*;
 
 public class Housekeeping {
     private Scanner scanner = new Scanner(System.in);
@@ -14,7 +16,7 @@ public class Housekeeping {
             System.out.println("\n--- Housekeeping Menu ---");
             System.out.println("1. View Cleaning Schedules");
             System.out.println("2. Update Cleaning Status");
-            System.out.println("3. Return to Main Menu");
+            System.out.println("3. Logout");
             int choice = scanner.nextInt();
 
             switch (choice) {
@@ -27,18 +29,20 @@ public class Housekeeping {
     }
 
     private void viewCleaningSchedules() {
-        String query = "SELECT * FROM HousekeepingSchedule";
-        try (Connection conn = getConnection();
-             ResultSet rs = executeQuery(conn, query)) {
+        String query = "SELECT h.HKSId, r.RoomNumber, h.ScheduleDate, h.HKStatus " +
+                "FROM HousekeepingSchedule h " +
+                "JOIN Room r ON h.RoomId = r.RoomId";
+        try (Connection conn = DatabaseUtils.getConnection();
+             ResultSet rs = DatabaseUtils.executeQuery(conn, query)) {
             while (rs.next()) {
-                System.out.printf("Room: %s | Date: %s | Status: %s\n",
-                        rs.getString("RoomId"), rs.getString("ScheduleDate"),
-                        rs.getString("HKStatus"));
+                System.out.printf("Schedule ID: %d | Room: %s | Date: %s | Status: %s\n",
+                        rs.getInt("HKSId"), rs.getString("RoomNumber"), rs.getDate("ScheduleDate"), rs.getString("HKStatus"));
             }
         } catch (SQLException e) {
             System.err.println("Error fetching schedules: " + e.getMessage());
         }
     }
+
 
     private void updateCleaningStatus() {
         System.out.print("Enter Room ID: ");
