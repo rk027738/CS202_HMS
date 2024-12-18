@@ -21,7 +21,9 @@ public class Administrator {
             System.out.println("3. Delete Room");
             System.out.println("4. Generate Revenue Report");
             System.out.println("5. View Housekeeping Performance");
-            System.out.println("6. Logout");
+            System.out.println("6. Add User");
+            System.out.println("7. Delete User");
+            System.out.println("8. Logout");
             int choice = scanner.nextInt();
 
             switch (choice) {
@@ -30,7 +32,9 @@ public class Administrator {
                 case 3 -> deleteRoom();
                 case 4 -> generateRevenueReport();
                 case 5 -> viewHousekeepingPerformance();
-                case 6 -> { return; }
+                case 6 -> addUser();
+                case 7 -> deleteUser();
+                case 8 -> { return; }
                 default -> System.out.println("Invalid choice!");
             }
         }
@@ -129,6 +133,74 @@ public class Administrator {
             System.out.println("------------------------------------------");
         } catch (SQLException e) {
             System.err.println("Error fetching housekeeping performance: " + e.getMessage());
+        }
+    }
+
+    public void addUser() {
+        System.out.print("Enter User Name: ");
+        String name = scanner.next();
+        scanner.nextLine();
+
+        System.out.print("Enter User Email: ");
+        String email = scanner.next();
+        scanner.nextLine();
+
+        System.out.print("Enter Password: ");
+        String password = scanner.next();
+        scanner.nextLine();
+
+        System.out.print("Enter User Role (Guest/Receptionist/Housekeeper): ");
+        String role = scanner.next();
+        scanner.nextLine();
+
+        // Enforce restriction: Administrator role cannot be added
+        if (role.equalsIgnoreCase("Admin")) {
+            System.out.println("Error: You cannot add a user with the Administrator role.");
+            return;
+        }
+
+        String query = "INSERT INTO User (Name, Email, Password, UserType) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DatabaseUtils.getConnection()) {
+            int rows = DatabaseUtils.executeUpdate(conn, query, name, email, password, role);
+            if (rows > 0) {
+                System.out.println("User added successfully.");
+            } else {
+                System.out.println("Failed to add user. Please try again.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error adding user: " + e.getMessage());
+        }
+    }
+
+    public void deleteUser() {
+        System.out.print("Enter User ID to Delete: ");
+        int userId = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+
+        // Prevent deletion of Administrator accounts
+        String checkQuery = "SELECT UserType FROM User WHERE UserId = ?";
+        String deleteQuery = "DELETE FROM User WHERE UserId = ?";
+
+        try (Connection conn = DatabaseUtils.getConnection()) {
+            ResultSet rs = DatabaseUtils.executeQuery(conn, checkQuery, userId);
+            if (rs.next()) {
+                String userType = rs.getString("UserType");
+                if (userType.equalsIgnoreCase("Admin")) {
+                    System.out.println("Error: Administrator accounts cannot be deleted.");
+                    return;
+                }
+
+                int rows = DatabaseUtils.executeUpdate(conn, deleteQuery, userId);
+                if (rows > 0) {
+                    System.out.println("User deleted successfully.");
+                } else {
+                    System.out.println("No user found with the given ID.");
+                }
+            } else {
+                System.out.println("No user found with the given ID.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error deleting user: " + e.getMessage());
         }
     }
 }
