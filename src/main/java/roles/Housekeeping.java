@@ -22,7 +22,9 @@ public class Housekeeping {
             switch (choice) {
                 case 1 -> viewCleaningSchedules();
                 case 2 -> updateCleaningStatus();
-                case 3 -> { return; }
+                case 3 -> {
+                    return;
+                }
                 default -> System.out.println("Invalid choice!");
             }
         }
@@ -44,7 +46,7 @@ public class Housekeeping {
     }
 
 
-//    private void updateCleaningStatus() {
+    //    private void updateCleaningStatus() {
 //        System.out.print("Enter Room Number: ");
 //        int roomId = scanner.nextInt();
 //        System.out.print("Enter New Status (Scheduled/Completed): ");
@@ -58,41 +60,43 @@ public class Housekeeping {
 //            System.err.println("Error updating status: " + e.getMessage());
 //        }
 //    }
-private void updateCleaningStatus() {
-    System.out.print("Enter Room Number: ");
-    int roomNumber = scanner.nextInt(); // Read RoomNumber as int
-    scanner.nextLine(); // Consume the newline character
-    System.out.print("Enter New Status (Scheduled/Completed): ");
-    String status = scanner.nextLine(); // Read new status
+    private void updateCleaningStatus() {
+        System.out.print("Enter Room Number: ");
+        int roomNumber = scanner.nextInt(); // Read RoomNumber as int
+        scanner.nextLine(); // Consume the newline character
+        System.out.print("Enter New Status (Scheduled/Completed): ");
+        String status = scanner.nextLine(); // Read new status
 
-    String updateQuery = "UPDATE HousekeepingSchedule " +
-            "SET HKStatus = ? " +
-            "WHERE RoomId = (SELECT RoomId FROM Room WHERE RoomNumber = ?)";
+        String updateQuery = "UPDATE HousekeepingSchedule " +
+                "SET HKStatus = ? " +
+                "WHERE RoomId = (SELECT RoomId FROM Room WHERE RoomNumber = ?)";
 
-    String insertQuery = "INSERT INTO HousekeepingSchedule (RoomId, UserId, ScheduleDate, HKStatus) " +
-            "SELECT RoomId, NULL, CURDATE(), ? " +
-            "FROM Room WHERE RoomNumber = ? " +
-            "AND NOT EXISTS (SELECT 1 FROM HousekeepingSchedule WHERE RoomId = Room.RoomId)";
+        String insertQuery = "INSERT INTO HousekeepingSchedule (RoomId, UserId, ScheduleDate, HKStatus) " +
+                "SELECT RoomId, NULL, CURDATE(), ? " +
+                "FROM Room WHERE RoomNumber = ? " +
+                "AND NOT EXISTS (SELECT 1 FROM HousekeepingSchedule WHERE RoomId = Room.RoomId)";
 
-    try (Connection conn = DatabaseUtils.getConnection()) {
-        // Attempt to update an existing status
-        int rowsUpdated = DatabaseUtils.executeUpdate(conn, updateQuery, status, roomNumber);
+        try (Connection conn = DatabaseUtils.getConnection()) {
+            // Attempt to update an existing status
+            int rowsUpdated = DatabaseUtils.executeUpdate(conn, updateQuery, status, roomNumber);
 
-        if (rowsUpdated > 0) {
-            System.out.println("Cleaning status updated.");
-        } else {
-            // If no rows were updated, insert a new cleaning schedule
-            int rowsInserted = DatabaseUtils.executeUpdate(conn, insertQuery, status, roomNumber);
-            if (rowsInserted > 0) {
-                System.out.println("New cleaning schedule added.");
+            if (rowsUpdated > 0) {
+                System.out.println("Cleaning status updated.");
             } else {
-                System.out.println("No matching room found for Room Number: " + roomNumber);
+                // If no rows were updated, insert a new cleaning schedule
+                int rowsInserted = DatabaseUtils.executeUpdate(conn, insertQuery, status, roomNumber);
+                if (rowsInserted > 0) {
+                    System.out.println("New cleaning schedule added.");
+                } else {
+                    System.out.println("No matching room found for Room Number: " + roomNumber);
+                }
             }
+        } catch (SQLException e) {
+            System.err.println("Error updating or adding cleaning status: " + e.getMessage());
         }
-    } catch (SQLException e) {
-        System.err.println("Error updating or adding cleaning status: " + e.getMessage());
     }
-}
+
+
 
 
 }

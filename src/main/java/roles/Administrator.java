@@ -20,7 +20,8 @@ public class Administrator {
             System.out.println("2. Modify Room Details");
             System.out.println("3. Delete Room");
             System.out.println("4. Generate Revenue Report");
-            System.out.println("5. Logout");
+            System.out.println("5. View Housekeeping Performance");
+            System.out.println("6. Logout");
             int choice = scanner.nextInt();
 
             switch (choice) {
@@ -28,7 +29,8 @@ public class Administrator {
                 case 2 -> modifyRoomDetails();
                 case 3 -> deleteRoom();
                 case 4 -> generateRevenueReport();
-                case 5 -> { return; }
+                case 5 -> viewHousekeepingPerformance();
+                case 6 -> { return; }
                 default -> System.out.println("Invalid choice!");
             }
         }
@@ -80,15 +82,53 @@ public class Administrator {
         }
     }
 
-    private void generateRevenueReport() {
-        String query = "SELECT SUM(Amount) AS TotalRevenue FROM Payment";
-        try (Connection conn = getConnection();
-             ResultSet rs = executeQuery(conn, query)) {
-            if (rs.next()) {
-                System.out.printf("Total Revenue: %.2f\n", rs.getDouble("TotalRevenue"));
+    public void generateRevenueReport() {
+        String query = "SELECT r.RoomType, SUM(p.Amount) AS TotalRevenue " +
+                "FROM Payment p " +
+                "JOIN Booking b ON p.BookingId = b.BookingId " +
+                "JOIN Room r ON b.RoomId = r.RoomId " +
+                "GROUP BY r.RoomType " +
+                "ORDER BY TotalRevenue DESC";
+
+        try (Connection conn = DatabaseUtils.getConnection();
+             ResultSet rs = DatabaseUtils.executeQuery(conn, query)) {
+            System.out.println("\n--- Revenue Report by Room Type ---");
+            System.out.printf("%-15s | %-15s\n", "Room Type", "Total Revenue");
+            System.out.println("---------------------------------");
+
+            while (rs.next()) {
+                String roomType = rs.getString("RoomType");
+                double totalRevenue = rs.getDouble("TotalRevenue");
+                System.out.printf("%-15s | %-15.2f\n", roomType, totalRevenue);
             }
+            System.out.println("---------------------------------");
         } catch (SQLException e) {
-            System.err.println("Error generating report: " + e.getMessage());
+            System.err.println("Error fetching revenue report: " + e.getMessage());
+        }
+    }
+
+    public void viewHousekeepingPerformance() {
+        String query = "SELECT u.Name AS HousekeeperName, COUNT(h.HKSId) AS TasksCompleted " +
+                "FROM HousekeepingSchedule h " +
+                "JOIN User u ON h.UserId = u.UserId " +
+                "WHERE h.HKStatus = 'Completed' " +
+                "GROUP BY u.Name " +
+                "ORDER BY TasksCompleted DESC";
+
+        try (Connection conn = DatabaseUtils.getConnection();
+             ResultSet rs = DatabaseUtils.executeQuery(conn, query)) {
+            System.out.println("\n--- Housekeeping Performance Report ---");
+            System.out.printf("%-20s | %-15s\n", "Housekeeper Name", "Tasks Completed");
+            System.out.println("------------------------------------------");
+
+            while (rs.next()) {
+                String housekeeperName = rs.getString("HousekeeperName");
+                int tasksCompleted = rs.getInt("TasksCompleted");
+                System.out.printf("%-20s | %-15d\n", housekeeperName, tasksCompleted);
+            }
+            System.out.println("------------------------------------------");
+        } catch (SQLException e) {
+            System.err.println("Error fetching housekeeping performance: " + e.getMessage());
         }
     }
 }
