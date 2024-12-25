@@ -92,15 +92,15 @@ public class Guest {
 
 
     private void viewMyBookings() {
-        System.out.print("Enter your name: ");
+        System.out.print("Enter your UserId: ");
         String name = scanner.next();
-        String query = "SELECT * FROM Booking WHERE GuestName = ?";
+        String query = "SELECT * FROM Booking WHERE UserId = ?";
 
         try (Connection conn = getConnection();
              ResultSet rs = executeQuery(conn, query, name)) {
             while (rs.next()) {
                 System.out.printf("Booking ID: %d | Room: %s | Status: %s\n",
-                        rs.getInt("BookingId"), rs.getString("RoomNumber"), rs.getString("Status"));
+                        rs.getInt("BookingId"), rs.getString("RoomId"), rs.getString("BookingStatus"));
             }
         } catch (SQLException e) {
             System.err.println("Error retrieving bookings: " + e.getMessage());

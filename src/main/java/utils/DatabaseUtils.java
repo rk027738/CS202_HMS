@@ -3,9 +3,9 @@ package utils;
 import java.sql.*;
 
 public class DatabaseUtils {
-    private static final String URL = "jdbc:mysql://sql7.freesqldatabase.com:3306/sql7752655";
-    private static final String USER = "sql7752655";
-    private static final String PASSWORD = "3zFkUu13Sp";
+    private static final String URL = "jdbc:mysql://sql7.freesqldatabase.com:3306/sql7754137";
+    private static final String USER = "sql7754137";
+    private static final String PASSWORD = "uzmJfSFpQB";
 
     // Establish database connection
     public static Connection getConnection() throws SQLException {
